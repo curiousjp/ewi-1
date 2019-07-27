@@ -1,4 +1,6 @@
 #include <MIDI.h>
+#include <Wire.h>
+
 MIDI_CREATE_DEFAULT_INSTANCE();
 
 #define ANALOG_PIN A6
@@ -27,6 +29,14 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 // send CC updates no more often than X milliseconds
 #define CC_INTERVAL 70
 
+// The following material relates to the DS1803 dual digital potentiometer functions
+#define DS1803 1
+#ifdef DS1803
+#define DS_CONTROLBYTE  B0101000 // 0101 + Address Zero (Wire library appends the last bit.)
+#define DS_COMMANDBYTE  B10101111 // Write both pots with one value
+#endif
+
+
 int unitState = STATE_SILENT;
 int currentNote = 0;
 int currentCCState = 0;
@@ -40,6 +50,9 @@ void setup() {
   pinMode( DIGITAL_PIN2, INPUT_PULLUP );
   pinMode( DIGITAL_PIN3, INPUT_PULLUP );
   unitState = STATE_SILENT;
+#ifdef DS1803
+  Wire.begin();
+#endif
   MIDI.begin();
   Serial.begin(115200);
   delay(1000);
@@ -47,7 +60,14 @@ void setup() {
 }
 
 void loop() {
-  int sensorValue = analogRead( ANALOG_PIN );
+  int sensorValue = max( analogRead( ANALOG_PIN ), SENSOR_L );
+
+#ifdef DS1803
+  Wire.beginTransmission( DS_CONTROLBYTE );
+  Wire.write( DS_COMMANDBYTE );
+  Wire.write( byte( 255 - map( sensorValue, SENSOR_L, SENSOR_H, 0, 255 ) ) );
+  Wire.endTransmission();
+#endif
 
   if( unitState == STATE_SILENT ) {
     if( sensorValue >= SENSOR_THRESHOLD ) {
