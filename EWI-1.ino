@@ -1,5 +1,6 @@
 #include <MIDI.h>
 #include <Wire.h>
+#include "midinotes.h"
 
 MIDI_CREATE_DEFAULT_INSTANCE();
 
@@ -42,7 +43,8 @@ int currentNote = 0;
 int currentCCState = 0;
 unsigned long lastCCSent = 0;
 
-const int scale[8] = { 0x3C, 0x3F, 0x41, 0x42, 0x43, 0x46, 0x48, 0x4B };
+const int scale[8] = { MIDI_AS3, MIDI_C4, MIDI_D4, MIDI_DS4, MIDI_F4, MIDI_G4, MIDI_GS4, MIDI_AS4 };
+//const int scale[8] = { MIDI_C4, MIDI_D4, MIDI_E4, MIDI_F4, MIDI_G4, MIDI_A4, MIDI_B4, MIDI_C5 };
 #define GETNOTE() scale[ !digitalRead( DIGITAL_PIN1 ) | ( !digitalRead( DIGITAL_PIN2 )<<1 ) | ( !digitalRead( DIGITAL_PIN3 ) << 2 ) ]
 
 void setup() {
